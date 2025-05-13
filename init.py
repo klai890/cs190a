@@ -9,6 +9,7 @@ from geopy.distance import geodesic
 import matplotlib.pyplot as plt
 import os
 
+id_map = {}
 # Show all rows
 pd.set_option('display.max_rows', None)
 
@@ -24,9 +25,9 @@ np.set_printoptions(threshold=np.inf)
 N_STATIONS = 2799 # via https://en.wikipedia.org/wiki/Citi_Bike
 
 # ALL ZIPFILE FILES
-ZIP_FILES = [#'202401-citibike-tripdata.csv.zip', '202402-citibike-tripdata.csv.zip', '202403-citibike-tripdata.csv.zip', 
-             #'202404-citibike-tripdata.csv.zip', '202405-citibike-tripdata.zip', '202406-citibike-tripdata.zip', 
-             #'202407-citibike-tripdata.zip', '202408-citibike-tripdata.zip', '202410-citibike-tripdata.zip',
+ZIP_FILES = ['202401-citibike-tripdata.csv.zip', '202402-citibike-tripdata.csv.zip', '202403-citibike-tripdata.csv.zip', 
+             '202404-citibike-tripdata.csv.zip', '202405-citibike-tripdata.zip', '202406-citibike-tripdata.zip', 
+             '202407-citibike-tripdata.zip', '202408-citibike-tripdata.zip', '202410-citibike-tripdata.zip',
              '202411-citibike-tripdata.zip', '202412-citibike-tripdata.zip']
 
 output_dir = 'plots'
@@ -85,7 +86,9 @@ def read_citibike_zip(zip_path):
     df['end_id'] = df['end_id'].astype(str)
 
     unique_ids = pd.unique(pd.concat([df['start_id'], df['end_id']]))
-    id_map = {id_: i for i, id_ in enumerate(unique_ids)}
+    for station_id in pd.unique(pd.concat([df['start_id'], df['end_id']])):
+        if station_id not in id_map:
+            id_map[station_id] = len(id_map)
     print("unique_ids.shape", unique_ids.shape)
     df['start_id'] = df['start_id'].map(id_map)
     df['end_id'] = df['end_id'].map(id_map)
