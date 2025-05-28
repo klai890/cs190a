@@ -1,0 +1,1 @@
+- To access the weather api, sign up for an account here https://www.visualcrossing.com/ and place your api key in a .env file following the format of the .env.SAMPLE file.
