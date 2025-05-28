@@ -118,9 +118,48 @@ def read_citibike_zip(zip_path):
 
     return df
 
+def build_adjacency_df(df, id_map, distance_threshold_m=1000):
+
+    station_coords = {}
+    for station_idx in id_map.values():
+        station_rows = df[df['start_id'] == station_idx][['start_lat', 'start_lng']]
+        if not station_rows.empty:
+            lat, lng = station_rows.iloc[0]['start_lat'], station_rows.iloc[0]['start_lng']
+            station_coords[station_idx] = (lat, lng)
+
+    adjacency_list = []
+    station_indices = list(station_coords.keys())
+
+    for i_idx in station_indices:
+        coord_i = station_coords[i_idx]
+        for j_idx in station_indices:
+            if i_idx == j_idx:
+                continue
+            coord_j = station_coords[j_idx]
+            dist_meters = geodesic(coord_i, coord_j).meters
+            if dist_meters <= distance_threshold_m:
+                adjacency_list.append({
+                    'station_i': i_idx,
+                    'station_j': j_idx,
+                    'connected': 1,
+                    'distance_m': dist_meters
+                })
+
+    adjacency_df = pd.DataFrame(adjacency_list)
+    return adjacency_df
+
 if __name__ == "__main__":
-    # A is your adjacency matrix (N x N)
-    # stations maps matrix row indices to station_id and coordinates
+    all_dfs = []
     for zip_file in ZIP_FILES:
-        zip_path = "data/" + zip_file
+        zip_path = os.path.join("data", zip_file)
         df = read_citibike_zip(zip_path)
+        if not df.empty:
+            all_dfs.append(df)
+
+    if all_dfs:
+        full_df = pd.concat(all_dfs, ignore_index=True)
+        adjacency_df = build_adjacency_df(full_df, id_map, distance_threshold_m=1000)
+        print(adjacency_df.head())
+    else:
+        print("No data loaded from zip files.")
+    
